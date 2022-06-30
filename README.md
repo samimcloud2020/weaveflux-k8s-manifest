@@ -1,0 +1,1 @@
+# weaveflux-k8s-manifest
