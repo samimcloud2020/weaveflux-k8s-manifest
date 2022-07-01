@@ -21,25 +21,19 @@ phases:
         - sed -i 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$TAG"'@' deploy.yaml
         
         - $(aws ecr get-login --no-include-email)  
-        - export KUBECONFIG=$HOME/.kube/config
+        
   build:
     commands:
-      - docker login -u samimbsnl -p 
+       
       - docker build --tag $REPOSITORY_URI:$TAG .
       
       - docker push $REPOSITORY_URI:$TAG
   post_build:
     commands:
-      - CREDENTIALS=$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)
+     
       - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
       - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
       - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
-      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
-      - kubectl apply -f deploy.yaml
-      - printf '[{"name":"devsecops","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build-devsecops.json
-artifacts:
-  files: 
-    - build-devsecops.json
-    
-  name: build-devsecops-${CODEBUILD_BUILD_NUMBER}
+     
+     
